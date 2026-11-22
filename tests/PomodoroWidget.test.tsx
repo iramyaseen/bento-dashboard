@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { useDashboardStore } from '../src/store/dashboardStore'
 import { PomodoroWidget } from '../src/components/widgets/PomodoroWidget'
 
@@ -48,16 +47,15 @@ describe('PomodoroWidget', () => {
     expect(screen.getByText('0')).toBeInTheDocument()
   })
 
-  it('starts timer when play button is clicked', async () => {
+  it('starts timer when play button is clicked', () => {
     render(<PomodoroWidget />)
     
-    const playButton = screen.getByLabelText('Start timer')
-    await userEvent.click(playButton)
+    fireEvent.click(screen.getByLabelText('Start timer'))
 
     expect(mockStartPomodoro).toHaveBeenCalled()
   })
 
-  it('pauses timer when pause button is clicked', async () => {
+  it('pauses timer when pause button is clicked', () => {
     ;(useDashboardStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       pomodoro: { ...defaultPomodoroState, isRunning: true },
       startPomodoro: mockStartPomodoro,
@@ -69,26 +67,23 @@ describe('PomodoroWidget', () => {
 
     render(<PomodoroWidget />)
     
-    const pauseButton = screen.getByLabelText('Pause timer')
-    await userEvent.click(pauseButton)
+    fireEvent.click(screen.getByLabelText('Pause timer'))
 
     expect(mockPausePomodoro).toHaveBeenCalled()
   })
 
-  it('resets timer when reset button is clicked', async () => {
+  it('resets timer when reset button is clicked', () => {
     render(<PomodoroWidget />)
     
-    const resetButton = screen.getByLabelText('Reset timer')
-    await userEvent.click(resetButton)
+    fireEvent.click(screen.getByLabelText('Reset timer'))
 
     expect(mockResetPomodoro).toHaveBeenCalled()
   })
 
-  it('skips to next phase when skip button is clicked', async () => {
+  it('skips to next phase when skip button is clicked', () => {
     render(<PomodoroWidget />)
     
-    const skipButton = screen.getByLabelText('Skip to next phase')
-    await userEvent.click(skipButton)
+    fireEvent.click(screen.getByLabelText('Skip to next phase'))
 
     expect(mockSkipPomodoroPhase).toHaveBeenCalled()
   })
@@ -140,23 +135,21 @@ describe('PomodoroWidget', () => {
     expect(screen.getByText('3')).toBeInTheDocument()
   })
 
-  it('shows settings panel when settings button is clicked', async () => {
+  it('shows settings panel when settings button is clicked', () => {
     render(<PomodoroWidget />)
     
-    const settingsButton = screen.getByText('Settings')
-    await userEvent.click(settingsButton)
+    fireEvent.click(screen.getByText('Settings'))
 
     expect(screen.getByText('Work Duration (minutes)')).toBeInTheDocument()
   })
 
-  it('toggles settings visibility', async () => {
+  it('toggles settings visibility', () => {
     render(<PomodoroWidget />)
     
-    const settingsButton = screen.getByText('Settings')
-    await userEvent.click(settingsButton)
+    fireEvent.click(screen.getByText('Settings'))
     expect(screen.getByText('Hide Settings')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByText('Hide Settings'))
+    fireEvent.click(screen.getByText('Hide Settings'))
     expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 })

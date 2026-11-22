@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeToggle } from '../src/components/ThemeToggle'
@@ -72,14 +71,10 @@ describe('ThemeToggle', () => {
     expect(screen.getByLabelText('Switch to light theme')).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('shows loading state before mount', () => {
-    const useStateSpy = vi.spyOn(React, 'useState')
-    useStateSpy.mockReturnValueOnce([false, vi.fn()])
-    
+  it('renders theme controls after mount', () => {
     render(<ThemeToggle />)
-    
-    const skeleton = document.querySelector('.animate-pulse')
-    expect(skeleton).toBeInTheDocument()
-    useStateSpy.mockRestore()
+
+    expect(screen.getByLabelText('Switch to light theme')).toBeInTheDocument()
+    expect(document.querySelector('.animate-pulse')).not.toBeInTheDocument()
   })
 })
