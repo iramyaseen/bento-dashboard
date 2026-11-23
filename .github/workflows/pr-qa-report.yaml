@@ -1,0 +1,51 @@
+name: PR QA Report
+
+# Thin bridge only — real QA (Claude + PR comment) runs in Gripo product workflow.
+# GitHub-hosted runners cannot reach *.internal hosts. Set repo secret:
+#   GRIPO_WEBHOOK_URL = https://<reachable-host>/api/v1/inbound/webhook/<uuid>/github/development-pr-qa
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-qa-gripo-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  trigger-gripo:
+    name: Trigger Gripo PR QA workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Forward PR event to Gripo webhook
+        env:
+          GRIPO_WEBHOOK_URL: ${{ secrets.GRIPO_WEBHOOK_URL }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = process.env.GRIPO_WEBHOOK_URL;
+            if (!url) {
+              core.setFailed(
+                'Set repository secret GRIPO_WEBHOOK_URL to your Gripo inbound webhook URL ' +
+                  '(must be reachable from GitHub Actions, not only *.internal).'
+              );
+              return;
+            }
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-GitHub-Event': 'pull_request',
+                'X-GitHub-Delivery': String(context.runId),
+              },
+              body: JSON.stringify(context.payload),
+            });
+            const text = await res.text();
+            core.info(`Gripo response ${res.status}: ${text.slice(0, 500)}`);
+            if (!res.ok) {
+              core.setFailed(`Gripo webhook failed with HTTP ${res.status}`);
+            }
